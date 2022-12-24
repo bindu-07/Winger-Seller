@@ -2,7 +2,7 @@ package com.food.ordering.zinger.seller.ui.orderdetail
 
 import android.annotation.SuppressLint
 import android.app.ProgressDialog
-import android.content.Intent
+import android.content.*
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -42,6 +42,7 @@ class OrderDetailActivity : AppCompatActivity(), View.OnClickListener {
     private var orderList: ArrayList<OrderItems> = ArrayList()
     private lateinit var order: OrderItemListModel
     private var isPickup = false
+    lateinit var clipboardManager: ClipboardManager
 
     @ExperimentalCoroutinesApi
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -155,7 +156,32 @@ class OrderDetailActivity : AppCompatActivity(), View.OnClickListener {
         setupShopRecyclerView()
         updateUI()
     }
-
+    private fun DisplayTracker(source: String, destination: String) {
+        try {
+            val uri = Uri.parse("https://www.google.co.in/maps/dir/"+ source+ "/"+destination)
+            val intent = Intent(Intent.ACTION_VIEW, uri)
+            intent.setPackage("com.google.android.apps.maps")
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            val uri =
+                Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.apps.maps")
+            val intent = Intent(Intent.ACTION_VIEW, uri)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            startActivity(intent)
+        }
+    }
+    fun copyText() {
+        val text = binding.textDeliveryLocation.text.toString()
+        if (text.isNotEmpty()) {
+            clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clipData = ClipData.newPlainText("key", text)
+            clipboardManager.setPrimaryClip(clipData)
+            Toast.makeText(applicationContext, "Copied", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(applicationContext, "No text to be copied", Toast.LENGTH_SHORT).show()
+        }
+    }
     @SuppressLint("SimpleDateFormat", "SetTextI18n")
     private fun updateUI() {
         binding.textUserName.text = order.transactionModel.orderModel.userModel?.name
@@ -179,6 +205,15 @@ class OrderDetailActivity : AppCompatActivity(), View.OnClickListener {
         if (!order.transactionModel.orderModel.deliveryLocation.isNullOrEmpty()) {
             binding.textDeliveryLocation.text = order.transactionModel.orderModel.deliveryLocation
             isPickup = false
+            binding.textDeliveryLocation.setOnClickListener {
+                copyText()
+                val source = ""
+
+                val destination = binding.textDeliveryLocation.text.toString()
+
+                DisplayTracker(source,destination)
+            }
+
         } else {
             binding.textDeliveryLocation.text = "Pick up from restaurant"
             isPickup = true
@@ -571,13 +606,25 @@ class OrderDetailActivity : AppCompatActivity(), View.OnClickListener {
             AppConstants.ORDER_STATUS_DELIVERED -> {
                 orderStatusList.clear()
                 orderStatusList.add(
-                    OrderStatus(isCurrent = false, isDone = true, name = StatusHelper.getStatusMessage(AppConstants.ORDER_STATUS_PLACED), orderStatusList = order.orderStatusModel)
+                    OrderStatus(
+                        isCurrent = false, isDone = true, name = StatusHelper.getStatusMessage(
+                            AppConstants.ORDER_STATUS_PLACED
+                        ), orderStatusList = order.orderStatusModel
+                    )
                 )
                 orderStatusList.add(
-                    OrderStatus(isCurrent = false, isDone = true, name = StatusHelper.getStatusMessage(AppConstants.ORDER_STATUS_ACCEPTED), orderStatusList = order.orderStatusModel)
+                    OrderStatus(
+                        isCurrent = false, isDone = true, name = StatusHelper.getStatusMessage(
+                            AppConstants.ORDER_STATUS_ACCEPTED
+                        ), orderStatusList = order.orderStatusModel
+                    )
                 )
                 orderStatusList.add(
-                    OrderStatus(isCurrent = false, isDone = true, name = StatusHelper.getStatusMessage(AppConstants.ORDER_STATUS_OUT_FOR_DELIVERY), orderStatusList = order.orderStatusModel)
+                    OrderStatus(
+                        isCurrent = false, isDone = true, name = StatusHelper.getStatusMessage(
+                            AppConstants.ORDER_STATUS_OUT_FOR_DELIVERY
+                        ), orderStatusList = order.orderStatusModel
+                    )
                 )
                 orderStatusList.add(
                     OrderStatus(
@@ -873,8 +920,9 @@ class OrderDetailActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private fun updateOrderRequest(
-        dialog: BottomSheetDialog, dialogBinding: BottomSheetSecretKeyBinding
-        , orderItemListModel: OrderItemListModel
+        dialog: BottomSheetDialog,
+        dialogBinding: BottomSheetSecretKeyBinding,
+        orderItemListModel: OrderItemListModel
     ) {
         if (dialogBinding.editSecretKey.text.toString()
                 .isNotEmpty() && dialogBinding.editSecretKey.text.toString().length == 6

@@ -54,22 +54,22 @@ class NewOrdersFragment : Fragment() {
         setObservers()
     }
 
-    private fun initView() {
-        updateUI()
-        progressDialog = ProgressDialog(activity)
-        errorSnackBar = Snackbar.make(binding.root, "", Snackbar.LENGTH_INDEFINITE)
-        val snackButton: Button = errorSnackBar.view.findViewById(R.id.snackbar_action)
-        snackButton.setCompoundDrawables(null, null, null, null)
-        snackButton.background = null
-        snackButton.setTextColor(ContextCompat.getColor(context!!, R.color.accent))
-        errorSnackBar.setAction("Try Again") {
-            viewModel.getOrderByShopId(preferencesHelper.currentShop)
+        private fun initView() {
+            updateUI()
+            progressDialog = ProgressDialog(activity)
+            errorSnackBar = Snackbar.make(binding.root, "", Snackbar.LENGTH_INDEFINITE)
+            val snackButton: Button = errorSnackBar.view.findViewById(R.id.snackbar_action)
+            snackButton.setCompoundDrawables(null, null, null, null)
+            snackButton.background = null
+            snackButton.setTextColor(ContextCompat.getColor(context!!, R.color.accent))
+            errorSnackBar.setAction("Try Again") {
+                viewModel.getOrderByShopId(preferencesHelper.currentShop)
+            }
+            errorSnackBar.dismiss()
+            binding.swipeRefreshLayout.setOnRefreshListener {
+                viewModel.getOrderByShopId(preferencesHelper.currentShop)
+            }
         }
-        errorSnackBar.dismiss()
-        binding.swipeRefreshLayout.setOnRefreshListener {
-            viewModel.getOrderByShopId(preferencesHelper.currentShop)
-        }
-    }
 
     private fun setObservers() {
         viewModel.orderByShopIdResponse.observe(viewLifecycleOwner, Observer { resource ->

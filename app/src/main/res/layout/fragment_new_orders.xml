@@ -25,7 +25,6 @@
                 android:layout_gravity="center"
                 android:clipToPadding="false"
                 android:overScrollMode="never"
-                android:padding="8dp"
                 android:scrollbars="vertical"
                 tools:listitem="@layout/item_order" />
 
